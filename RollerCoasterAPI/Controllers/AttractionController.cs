@@ -60,17 +60,17 @@ namespace RollerCoasterAPI.Controllers
         [Produces("application/json")]
         public ActionResult<RollerCoaster[]> Attractions()
         {
-            DataSet ds = DBAccess.ExecuteDataSet("spRollerCoastersGet", null);
+            var dbRes = DBAccess.ExecuteDataSet("spRollerCoastersGet", null).Ds;
 
             bool isError = true;
-            if (ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
+            if (dbRes.Tables.Count > 0 && dbRes.Tables[0].Rows.Count > 0)
             {
-                if (Convert.ToInt32(ds.Tables[0].Rows[0]["Error"]) == 0)
+                if (Convert.ToInt32(dbRes.Tables[0].Rows[0]["Error"]) == 0)
                 {
-                    if (ds.Tables.Count > 1 && ds.Tables[1].Rows.Count > 0)
+                    if (dbRes.Tables.Count > 1 && dbRes.Tables[1].Rows.Count > 0)
                     {
                         isError = false;
-                        string json = ds.Tables[1].Rows[0]["JSON"].ToString();
+                        string json = dbRes.Tables[1].Rows[0]["JSON"].ToString();
                         string incomingETag = string.Empty;
                     }
                 }
