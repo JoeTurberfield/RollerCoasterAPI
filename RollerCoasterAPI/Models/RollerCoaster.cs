@@ -2,6 +2,8 @@
 {
     public class RollerCoaster
     {
+        public static readonly string POV_dir = @"\\crystalfs\Fileshares\ProductVideosIncoming\VOD_CDN_upload";
+
         public int? Id { get; set; }
         public int TypeId { get; set; }
         public string Name { get; set; }

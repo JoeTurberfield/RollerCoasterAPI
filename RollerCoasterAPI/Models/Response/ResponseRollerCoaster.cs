@@ -1,8 +1,7 @@
 ﻿namespace RollerCoasterAPI.Models.Response
 {
-    public class ResponseRollerCoaster
+    public class ResponseRollerCoaster : Response
     {
-        public int ResponseCode { get; set; }
-        public string ResponseMessage { get; set; }
+
     }
 }
