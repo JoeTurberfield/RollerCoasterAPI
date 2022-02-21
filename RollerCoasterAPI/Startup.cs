@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using RollerCoasterAPI.Data;
 using RollerCoasterAPI.Filters;
 using RollerCoasterAPI.Models;
 using System;
@@ -21,6 +22,7 @@ namespace RollerCoasterAPI
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            DBAccess.ConnectionString = Configuration["ConnectionStrings:DbConnection"];
         }
 
         public IConfiguration Configuration { get; }
@@ -34,7 +36,7 @@ namespace RollerCoasterAPI
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "RollerCoasterAPI", Version = "v1" });
                 c.OperationFilter<AddRequiredHeaderParameters>();
             });
-            services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
+            services.Configure<AppSettings>(Configuration.GetSection("AppSettings")); // Not used currently
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

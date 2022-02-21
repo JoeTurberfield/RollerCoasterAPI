@@ -13,8 +13,8 @@ namespace RollerCoasterAPI.Data
     public sealed class DBAccess
     {
         public static string ConnectionString { get; set; }
-
         private readonly IConfiguration _config;
+
         private DBAccess(IConfiguration config)
         {
             _config = config;
