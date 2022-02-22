@@ -43,7 +43,7 @@ namespace RollerCoasterAPI.Models.Response
                 return new DBResponse
                 {
                     ResponseCode = Convert.ToInt32(row["ResponseCode"]),
-                    ResponseMessage = row["ResponseCode"].ToString(),
+                    ResponseMessage = row["ResponseMessage"].ToString(),
                     Ds = ds
                 };
             }

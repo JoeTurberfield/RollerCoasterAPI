@@ -36,7 +36,7 @@ namespace RollerCoasterAPI.Data
 
             using (SqlConnection connection = new SqlConnection(ConnectionString))
             using (SqlCommand cmd = new SqlCommand(spName, connection))
-            {               
+            {
                 // Create the DataAdapter & DataSet
                 using SqlDataAdapter da = new SqlDataAdapter(cmd);
                 DataSet ds = new DataSet();
@@ -73,46 +73,34 @@ namespace RollerCoasterAPI.Data
 
             if ((parameterValues != null) && parameters.Count > 0)
             {
+                SqlParameter[] commandParameters = DiscoverSpParameterSet(spName, false);
+
+                if ((commandParameters == null) || (parameterValues == null))
+                {
+                    // Do nothing if we get no data
+                    return DBResponse.SetResponse(-1, "No parameters or corresponding values found");
+                }
+
+                AssignParameterValues(commandParameters, parameters);
+
                 using (SqlConnection connection = new SqlConnection(ConnectionString))
                 using (SqlCommand cmd = new SqlCommand(spName, connection))
                 {
-                    SqlParameter[] commandParameters = DiscoverSpParameterSet(connection, spName, false);
-
-                    if ((commandParameters == null) || (parameterValues == null))
-                    {
-                        // Do nothing if we get no data
-                        return DBResponse.SetResponse(-1, "No parameters or corresponding values found");
-                    }
-
-                    // Iterate through the SqlParameters, assigning the values from the corresponding position in the
-                    // value array
-                    for (int i = 0; i < commandParameters.Length; i++)
-                    {
-                        // If the current array value derives from IDbDataParameter, then assign its Value property
-                        if (parameters.TryGetValue(commandParameters[i].ParameterName, out object theValue) && theValue != null)
-                        {
-                            commandParameters[i].Value = theValue;
-                        }
-                        else
-                        {
-                            commandParameters[i].Value = DBNull.Value;
-                        }
-                    }
-
+                    cmd.CommandType = CommandType.StoredProcedure;
                     if (commandParameters != null)
                     {
-                        foreach (SqlParameter p in commandParameters)
+                        foreach (SqlParameter param in commandParameters)
                         {
-                            if (p != null)
+                            SqlParameter nameParam = new SqlParameter(param.ParameterName, param.SqlValue);
+
+                            if (param != null)
                             {
-                                // Check for derived output value with no value assigned
-                                if ((p.Direction == ParameterDirection.InputOutput ||
-                                    p.Direction == ParameterDirection.Input) &&
-                                    (p.Value == null))
+                                if (param.Direction == ParameterDirection.InputOutput || param.Direction == ParameterDirection.Input && (param == null))
                                 {
-                                    p.Value = DBNull.Value;
+                                    param.Value = DBNull.Value;
                                 }
-                                cmd.Parameters.Add(p);
+
+                                cmd.Parameters.Add(nameParam);
                             }
                         }
                     }
@@ -134,8 +122,9 @@ namespace RollerCoasterAPI.Data
             return DBResponse.SetResponse();
         }
 
-        private static SqlParameter[] DiscoverSpParameterSet(SqlConnection connection, string spName, bool includeReturnValueParameter)
+        private static SqlParameter[] DiscoverSpParameterSet(string spName, bool includeReturnValueParameter)
         {
+            SqlConnection connection = new SqlConnection(ConnectionString);
             SqlCommand cmd = new SqlCommand(spName, connection)
             {
                 CommandType = CommandType.StoredProcedure
@@ -161,6 +150,24 @@ namespace RollerCoasterAPI.Data
             }
 
             return discoveredParameters;
+        }
+
+        private static void AssignParameterValues(SqlParameter[] commandParameters, Dictionary<string, object> parameterValues)
+        {
+            // Iterate through the SqlParameters, assigning the values from the corresponding position in the
+            // value array
+            for (int i = 0; i < commandParameters.Length; i++)
+            {
+                // If the current array value derives from IDbDataParameter, then assign its Value property
+                if (parameterValues.TryGetValue(commandParameters[i].ParameterName, out object theValue) && theValue != null)
+                {
+                    commandParameters[i].Value = theValue;
+                }
+                else
+                {
+                    commandParameters[i].Value = DBNull.Value;
+                }
+            }
         }
     }
 }
