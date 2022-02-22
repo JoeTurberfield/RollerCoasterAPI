@@ -22,7 +22,7 @@ namespace RollerCoasterAPI
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            DBAccess.ConnectionString = Configuration["ConnectionStrings:DbConnection"];
+            DBHelper.ConnectionString = Configuration["ConnectionStrings:DbConnection"];
         }
 
         public IConfiguration Configuration { get; }

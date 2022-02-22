@@ -33,7 +33,7 @@ namespace RollerCoasterAPI.Controllers
 
             var response = new ResponseRollerCoaster();
 
-            var ds = DBAccess.ExecuteDataSet("spAttractionSaveUpdate", new
+            var ds = DBHelper.ExecuteDataSet("sp_AttractionSaveUpdate", new
             {
                 rollerCoaster.Id,
                 rollerCoaster.TypeId,
@@ -48,7 +48,6 @@ namespace RollerCoasterAPI.Controllers
                 return response;
             }
 
-
             return NotFound();
         }
 
@@ -60,7 +59,7 @@ namespace RollerCoasterAPI.Controllers
         [Produces("application/json")]
         public ActionResult<RollerCoaster[]> Attractions()
         {
-            var dbRes = DBAccess.ExecuteDataSet("spRollerCoastersGet", null).Ds;
+            var dbRes = DBHelper.ExecuteDataSet("sp_AttractionsGet", null).Ds;
 
             bool isError = true;
             if (dbRes.Tables.Count > 0 && dbRes.Tables[0].Rows.Count > 0)

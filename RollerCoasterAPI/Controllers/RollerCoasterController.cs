@@ -1,19 +1,18 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using RollerCoasterAPI.Models;
-using RollerCoasterAPI.Models.Response;
-using RollerCoasterAPI.Models.Request;
-using System.ComponentModel.DataAnnotations;
-using System.Data.SqlClient;
-using System.Data;
-using System;
-using RollerCoasterAPI.Data;
-using System.Net;
 using Microsoft.Net.Http.Headers;
+using RestSharp;
+using RollerCoasterAPI.Data;
+using RollerCoasterAPI.Models;
+using RollerCoasterAPI.Models.Request;
+using RollerCoasterAPI.Models.Response;
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.Data;
+using System.IO;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using System.IO;
-using RestSharp;
 
 namespace RollerCoasterAPI.Controllers
 {
@@ -28,7 +27,7 @@ namespace RollerCoasterAPI.Controllers
         [HttpGet("RollerCoasterDropDownLists")]
         public ActionResult<ResponseDropDownList> RollerCoasterDropDownLists()
         {
-            var dbRes = DBAccess.ExecuteDataSet("sp_RollerCoasterDatabaseGetDDLs");
+            var dbRes = DBHelper.ExecuteDataSet("sp_RollerCoasterDatabaseGetDDLs");
 
             if (dbRes.IsSuccess)
             {
@@ -55,7 +54,7 @@ namespace RollerCoasterAPI.Controllers
                     responseDropDownList.DropDownLists.Add(ddl);
                 }
 
-                return responseDropDownList;
+                return Ok(responseDropDownList);
             }
 
             return NotFound();
@@ -74,9 +73,7 @@ namespace RollerCoasterAPI.Controllers
                 return NotFound();
             }
 
-            var response = new ResponseRollerCoaster();
-
-            var dbRes = DBAccess.ExecuteDataSet("sp_RollerCoasterSaveUpdate", new
+            var dbRes = DBHelper.ExecuteDataSet("sp_RollerCoasterSaveUpdate", new
             {
                 RollerCoasterID = rollerCoaster.Id,
                 RollerCoasterTypeID = rollerCoaster.TypeId,
@@ -93,19 +90,7 @@ namespace RollerCoasterAPI.Controllers
                 IsDeleted = false
             });
 
-            response.ResponseCode = dbRes.ResponseCode;
-            response.ResponseMessage = dbRes.ResponseMessage;
-
-            if (dbRes.IsSuccess)
-            {
-
-            }
-            else
-            {
-
-            }
-
-            return response;
+            return Ok(new ResponseRollerCoaster(dbRes));
         }
 
         /// <summary>
@@ -115,19 +100,15 @@ namespace RollerCoasterAPI.Controllers
         [HttpGet("RollerCoasters")]
         public ActionResult<RollerCoaster[]> RollerCoasters()
         {
-            var dbRes = DBAccess.ExecuteDataSet("spRollerCoastersGet", null).Ds;
+            var dbRes = DBHelper.ExecuteDataSet("sp_RollerCoastersGet");
 
-            bool isError = true;
-            if (dbRes.Tables.Count > 0 && dbRes.Tables[0].Rows.Count > 0)
+            if (dbRes.IsSuccess)
             {
-                if (Convert.ToInt32(dbRes.Tables[0].Rows[0]["Error"]) == 0)
+                DataSet ds = dbRes.Ds;
+                if (ds.Tables.Count > 1 && ds.Tables[1].Rows.Count > 0)
                 {
-                    if (dbRes.Tables.Count > 1 && dbRes.Tables[1].Rows.Count > 0)
-                    {
-                        isError = false;
-                        string json = dbRes.Tables[1].Rows[0]["JSON"].ToString();
-                        string incomingETag = string.Empty;
-                    }
+                    //string json = dbRes.Tables[1].Rows[0]["JSON"].ToString();
+                    //string incomingETag = string.Empty;
                 }
             }
 
@@ -142,7 +123,7 @@ namespace RollerCoasterAPI.Controllers
         [Produces("application/json")]
         public ActionResult RollerCoastersJson()
         {
-            var dbRes = DBAccess.ExecuteDataSet("spRollerCoastersGet", null).Ds;
+            var dbRes = DBHelper.ExecuteDataSet("spRollerCoastersGet", null).Ds;
 
             bool isError = true;
             if (dbRes.Tables.Count > 0 && dbRes.Tables[0].Rows.Count > 0)
@@ -213,7 +194,7 @@ namespace RollerCoasterAPI.Controllers
         {
             ResponsePOV response = new ResponsePOV();
 
-            var dbRes = DBAccess.ExecuteDataSet("sp_RollerCoasterPOVUpload", new {
+            var dbRes = DBHelper.ExecuteDataSet("sp_RollerCoasterPOVUpload", new {
                 user = 12,
                 fileName,
                 filePath,
@@ -221,18 +202,18 @@ namespace RollerCoasterAPI.Controllers
                 frameRate,
                 resolutionX,
                 resolutionY
-            }).Ds;
+            });
 
-            if (dbRes != null && dbRes.Tables.Count > 0 && dbRes.Tables[0].Rows.Count > 0)
+            response.ResponseCode = dbRes.ResponseCode;
+            response.ResponseMessage = dbRes.ResponseMessage;
+
+            if (dbRes.IsSuccess)
             {
-                DataRow rowTbl0 = dbRes.Tables[0].Rows[0];
+                DataSet ds = dbRes.Ds;
 
-                response.ResponseCode = Convert.ToInt32(rowTbl0["ResponseCode"]);
-                response.ResponseMessage = rowTbl0["ResponseMessage"].ToString();
-
-                if (response.ResponseCode == 0 && dbRes.Tables.Count > 1 && dbRes.Tables[1].Rows.Count > 0)
+                if (response.ResponseCode == 0 && ds.Tables.Count > 1 && ds.Tables[1].Rows.Count > 0)
                 {
-                    DataRow rowTbl1 = dbRes.Tables[1].Rows[0];
+                    DataRow rowTbl1 = ds.Tables[1].Rows[0];
 
                     POV newPOV = new POV();
 
@@ -261,16 +242,16 @@ namespace RollerCoasterAPI.Controllers
 
                 POV video = response.Pov;
 
-                var dbResGuid = DBAccess.ExecuteDataSet("sp_POVFileGUIDSet", new
+                var dbResGuid = DBHelper.ExecuteDataSet("sp_POVFileGUIDSet", new
                 {
                     //FileID = fileId,
                     //GUID = video.Guid
-                }).Ds;
+                });
 
                 string guid = ""; // NOT YET SET
                 string url = ""; // NOT YET SET
 
-                if (dbResGuid != null && dbResGuid.Tables.Count > 0 && dbResGuid.Tables[0].Rows.Count > 0)
+                if (dbResGuid.IsSuccess)
                 {
                     // Fetch video and upload
                     var requestUpload = new RestRequest($"library/{streamLibraryId}/videos/{guid}/fetch", Method.Post);

@@ -55,5 +55,4 @@ namespace RollerCoasterAPI.Models.Response
             };
         }
     }
-
 }

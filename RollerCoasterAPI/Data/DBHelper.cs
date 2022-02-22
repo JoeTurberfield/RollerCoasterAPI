@@ -11,12 +11,12 @@ using RollerCoasterAPI.Models.Response;
 
 namespace RollerCoasterAPI.Data
 {
-    public sealed class DBAccess
+    public sealed class DBHelper
     {
         public static string ConnectionString { get; set; }
         private readonly IConfiguration _config;
 
-        private DBAccess(IConfiguration config)
+        private DBHelper(IConfiguration config)
         {
             _config = config;
             ConnectionString = _config["ConnectionStrings:DbConnection"];
