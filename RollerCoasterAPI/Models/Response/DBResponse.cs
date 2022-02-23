@@ -1,58 +1,88 @@
 ﻿using System;
 using System.Data;
+using System.Linq;
 
 namespace RollerCoasterAPI.Models.Response
 {
-    public class DBResponse
+    public sealed class DBResponse
     {
+        public int ResponseCode 
+        {
+            get
+            {
+                if (ErrorCheck)
+                {
+                    return Convert.ToInt32(_DataSet.Tables[0].Rows[0]["ResponseCode"]);
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+            set { }
+        }
+
+        public string ResponseMessage 
+        {
+            get
+            {
+                if (ErrorCheck && _DataSet.Tables[0].Columns.Contains("ResponseMessage"))
+                {
+                    return _DataSet.Tables[0].Rows[0]["ResponseMessage"].ToString();
+                }
+                else
+                {
+                    return string.Empty;
+                }
+            }
+            set { }
+        }
+
+        public bool ErrorCheck
+        {
+            get
+            {
+                if (_DataSet.Tables[0].Columns.Contains("ResponseCode"))
+                {
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
+        public DataSet _DataSet { get; set; }
+
         public bool IsSuccess 
         { 
             get 
             { 
-                return ResponseCode == 0; 
+                return !IsEmpty && ResponseCode == 0; 
             }
         }
-        public int ResponseCode { get; set; }
-        public string ResponseMessage { get; set; }
-        public DataSet Ds { get; set; }
 
-        public static DBResponse SetResponse(int responseCode = -1, string responseMessage = "")
+        public bool IsEmpty
         {
-            return new DBResponse
+            get
             {
-                ResponseCode = responseCode,
-                ResponseMessage = responseMessage
-            };
+                return _DataSet == null || _DataSet.Tables.Count == 0 || _DataSet.Tables[0].Rows.Count == 0;
+            }
         }
 
-        public static DBResponse SetResponse(DataSet ds)
+        public DBResponse()
         {
-            if (ds == null || ds.Tables.Count == 0 || ds.Tables[0].Rows.Count == 0)
-            {
-                return new DBResponse
-                {
-                    ResponseCode = -1,
-                    ResponseMessage = "No data found"
-                };
-            }
 
-            if (ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
-            {
-                DataRow row = ds.Tables[0].Rows[0];
+        }
 
-                return new DBResponse
-                {
-                    ResponseCode = Convert.ToInt32(row["ResponseCode"]),
-                    ResponseMessage = row["ResponseMessage"].ToString(),
-                    Ds = ds
-                };
-            }
+        public DBResponse(DataSet ds)
+        {
+            _DataSet = ds;
+        }
 
-            return new DBResponse
-            {
-                ResponseCode = -1,
-                ResponseMessage = "An unexpected error has occured"
-            };
+        public DBResponse(int responseCode = -1, string responseMessage = "")
+        {
+            ResponseCode = responseCode;
+            ResponseMessage = responseMessage;
         }
     }
 }

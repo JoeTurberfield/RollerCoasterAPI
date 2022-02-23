@@ -6,11 +6,5 @@
         {
 
         }
-
-        public ResponseRollerCoaster(DBResponse dbRes)
-        {
-            ResponseCode = dbRes.ResponseCode;
-            ResponseMessage = dbRes.ResponseMessage;
-        }
     }
 }

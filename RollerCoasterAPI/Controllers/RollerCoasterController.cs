@@ -27,13 +27,19 @@ namespace RollerCoasterAPI.Controllers
         [HttpGet("RollerCoasterDropDownLists")]
         public ActionResult<ResponseDropDownList> RollerCoasterDropDownLists()
         {
-            var dbRes = DBHelper.ExecuteDataSet("sp_RollerCoasterDatabaseGetDDLs");
+            var dbrs = DBHelper.ExecuteDataSet("sp_RollerCoasterDatabaseGetDDLs");
 
-            if (dbRes.IsSuccess)
+            if (dbrs.IsSuccess)
             {
-                ResponseDropDownList responseDropDownList = new ResponseDropDownList();
+                DataSet ds = dbrs._DataSet;
 
-                foreach (DataTable tbl in dbRes.Ds.Tables)
+                ResponseDropDownList responseDropDownList = new ResponseDropDownList
+                {
+                    ResponseCode = dbrs.ResponseCode,
+                    ResponseMessage = dbrs.ResponseMessage
+                };
+
+                foreach (DataTable tbl in ds.Tables)
                 {
                     DataColumnCollection columns = tbl.Columns;
                     if (!columns.Contains("Value") || !columns.Contains("Name"))
@@ -45,7 +51,8 @@ namespace RollerCoasterAPI.Controllers
 
                     foreach (DataRow row in tbl.Rows)
                     {
-                        ddl._DropDownList.Add( new DropDownItem {
+                        ddl._DropDownList.Add(new DropDownItem
+                        {
                             Value = Convert.ToInt32(row["Value"]),
                             Name = row["Name"].ToString()
                         });
@@ -70,10 +77,14 @@ namespace RollerCoasterAPI.Controllers
         {
             if (rollerCoaster == null)
             {
-                return NotFound();
+                return NotFound(new ResponseRollerCoaster
+                {
+                    ResponseCode = -1,
+                    ResponseMessage = "No request found"
+                });
             }
 
-            var dbRes = DBHelper.ExecuteDataSet("sp_RollerCoasterSaveUpdate", new
+            var dbrs = DBHelper.ExecuteDataSet("sp_RollerCoasterSaveUpdate", new
             {
                 RollerCoasterID = rollerCoaster.Id,
                 RollerCoasterTypeID = rollerCoaster.TypeId,
@@ -90,7 +101,11 @@ namespace RollerCoasterAPI.Controllers
                 IsDeleted = false
             });
 
-            return Ok(new ResponseRollerCoaster(dbRes));
+            return Ok(new ResponseRollerCoaster
+            {
+                ResponseCode = dbrs.ResponseCode,
+                ResponseMessage = dbrs.ResponseMessage
+            });
         }
 
         /// <summary>
@@ -100,19 +115,21 @@ namespace RollerCoasterAPI.Controllers
         [HttpGet("RollerCoasters")]
         public ActionResult<RollerCoaster[]> RollerCoasters()
         {
-            var dbRes = DBHelper.ExecuteDataSet("sp_RollerCoastersGet");
+            var dbrs = DBHelper.ExecuteDataSet("sp_RollerCoastersGet");
 
-            if (dbRes.IsSuccess)
+            if (dbrs.IsSuccess)
             {
-                DataSet ds = dbRes.Ds;
+                DataSet ds = dbrs._DataSet;
                 if (ds.Tables.Count > 1 && ds.Tables[1].Rows.Count > 0)
                 {
                     //string json = dbRes.Tables[1].Rows[0]["JSON"].ToString();
                     //string incomingETag = string.Empty;
+
+                    return Ok();
                 }
             }
 
-            return StatusCode((int)HttpStatusCode.NoContent);
+            return NotFound();
         }
 
         /// <summary>
@@ -123,47 +140,45 @@ namespace RollerCoasterAPI.Controllers
         [Produces("application/json")]
         public ActionResult RollerCoastersJson()
         {
-            var dbRes = DBHelper.ExecuteDataSet("spRollerCoastersGet", null).Ds;
+            var dbrs = DBHelper.ExecuteDataSet("sp_RollerCoastersGetJson");
 
             bool isError = true;
-            if (dbRes.Tables.Count > 0 && dbRes.Tables[0].Rows.Count > 0)
+            if (dbrs.IsSuccess)
             {
-                if (Convert.ToInt32(dbRes.Tables[0].Rows[0]["Error"]) == 0)
+                DataSet ds = dbrs._DataSet;
+                if (ds.Tables.Count > 1 && ds.Tables[1].Rows.Count > 0)
                 {
-                    if (dbRes.Tables.Count > 1 && dbRes.Tables[1].Rows.Count > 0)
+                    isError = false;
+
+                    string json = ds.Tables[1].Rows[0]["JSON"].ToString();
+                    string incomingETag = string.Empty;
+
+                    if (HttpContext.Request.Headers.ContainsKey(HeaderNames.IfNoneMatch))
                     {
-                        isError = false;
+                        incomingETag = HttpContext.Request.Headers[HeaderNames.IfNoneMatch].ToString();
+                    }
 
-                        string json = dbRes.Tables[1].Rows[0]["JSON"].ToString();
-                        string incomingETag = string.Empty;
+                    StringBuilder Sb = new StringBuilder();
+                    using (var hash2 = System.Security.Cryptography.SHA256.Create())
+                    {
+                        Encoding enc = Encoding.UTF8;
+                        byte[] result = hash2.ComputeHash(enc.GetBytes(json));
 
-                        if (HttpContext.Request.Headers.ContainsKey(HeaderNames.IfNoneMatch))
+                        foreach (byte b in result)
                         {
-                            incomingETag = HttpContext.Request.Headers[HeaderNames.IfNoneMatch].ToString();
+                            Sb.Append(b.ToString("x2"));
                         }
+                    }
+                    var eTag = Sb.ToString();
 
-                        StringBuilder Sb = new StringBuilder();
-                        using (var hash2 = System.Security.Cryptography.SHA256.Create())
-                        {
-                            Encoding enc = Encoding.UTF8;
-                            byte[] result = hash2.ComputeHash(enc.GetBytes(json));
-
-                            foreach (byte b in result)
-                            {
-                                Sb.Append(b.ToString("x2"));
-                            }
-                        }
-                        var eTag = Sb.ToString();
-
-                        if (incomingETag.Equals(eTag))
-                        {
-                            return StatusCode((int)HttpStatusCode.NotModified);
-                        }
-                        else
-                        {
-                            HttpContext.Response.Headers.Add(HeaderNames.ETag, new[] { eTag });
-                            return Content(json, "application/json");
-                        }
+                    if (incomingETag.Equals(eTag))
+                    {
+                        return StatusCode((int)HttpStatusCode.NotModified);
+                    }
+                    else
+                    {
+                        HttpContext.Response.Headers.Add(HeaderNames.ETag, new[] { eTag });
+                        return Content(json, "application/json");
                     }
                 }
             }
@@ -194,7 +209,8 @@ namespace RollerCoasterAPI.Controllers
         {
             ResponsePOV response = new ResponsePOV();
 
-            var dbRes = DBHelper.ExecuteDataSet("sp_RollerCoasterPOVUpload", new {
+            var dbrs = DBHelper.ExecuteDataSet("sp_RollerCoasterPOVUpload", new
+            {
                 user = 12,
                 fileName,
                 filePath,
@@ -204,12 +220,12 @@ namespace RollerCoasterAPI.Controllers
                 resolutionY
             });
 
-            response.ResponseCode = dbRes.ResponseCode;
-            response.ResponseMessage = dbRes.ResponseMessage;
+            response.ResponseCode = dbrs.ResponseCode;
+            response.ResponseMessage = dbrs.ResponseMessage;
 
-            if (dbRes.IsSuccess)
+            if (dbrs.IsSuccess)
             {
-                DataSet ds = dbRes.Ds;
+                DataSet ds = dbrs._DataSet;
 
                 if (response.ResponseCode == 0 && ds.Tables.Count > 1 && ds.Tables[1].Rows.Count > 0)
                 {

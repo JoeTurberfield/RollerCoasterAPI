@@ -47,7 +47,7 @@ namespace RollerCoasterAPI.Data
                 // Detach the SqlParameters from the command object, so they can be used again
                 cmd.Parameters.Clear();
 
-                return DBResponse.SetResponse(ds);
+                return new DBResponse(ds);
             }
         }
 
@@ -78,7 +78,7 @@ namespace RollerCoasterAPI.Data
                 if ((commandParameters == null) || (parameterValues == null))
                 {
                     // Do nothing if we get no data
-                    return DBResponse.SetResponse(-1, "No parameters or corresponding values found");
+                    return new DBResponse(-1, "No parameters or corresponding values found");
                 }
 
                 AssignParameterValues(commandParameters, parameters);
@@ -115,11 +115,11 @@ namespace RollerCoasterAPI.Data
                     // Detach the SqlParameters from the command object, so they can be used again
                     cmd.Parameters.Clear();
 
-                    return DBResponse.SetResponse(ds);
+                    return new DBResponse(ds);
                 }
             }
 
-            return DBResponse.SetResponse();
+            return new DBResponse();
         }
 
         private static SqlParameter[] DiscoverSpParameterSet(string spName, bool includeReturnValueParameter)
