@@ -211,7 +211,7 @@ namespace RollerCoasterAPI.Controllers
 
             var dbrs = DBHelper.ExecuteDataSet("sp_RollerCoasterPOVUpload", new
             {
-                user = 12,
+                //user = 0,
                 fileName,
                 filePath,
                 durationFrames,
@@ -246,14 +246,14 @@ namespace RollerCoasterAPI.Controllers
             var request = new RestRequest($"library/{streamLibraryId}/videos", Method.Post);
             request.AddHeader("AccessKey", streamApiKey);
             request.AddHeader("Content-Type", "application/json");
-            request.AddJsonBody(new CreateNewVideoRequest { Title = fileName });
+            request.AddJsonBody(new RequestCreateNewVideo { Title = fileName });
             var bunnyResponse = client.ExecuteAsync<POV>(request);
 
             if (bunnyResponse.IsCompleted)
             {
                 #region API paths to download video file to be uploaded to BunnyCDN               
                 // Local - Does not work with BunnyCDN
-                // string url = $"https://localhost:44343/api/VideoOnDemand/DownloadFile?filename={filename}";
+                // string url = $"https://localhost:44343/api/RollerCoaster/DownloadPOVFile?filename={filename}";
                 #endregion
 
                 POV video = response.Pov;
@@ -271,35 +271,35 @@ namespace RollerCoasterAPI.Controllers
                 {
                     // Fetch video and upload
                     var requestUpload = new RestRequest($"library/{streamLibraryId}/videos/{guid}/fetch", Method.Post);
-                    requestUpload.AddJsonBody(new FetchVideoRequest { URL = url });
+                    requestUpload.AddJsonBody(new RequestFetchVideo { URL = url });
                     requestUpload.AddHeader("Content-Type", "application/json");
                     requestUpload.AddHeader("AccessKey", streamApiKey);
-                    var uploadResponse = client.ExecuteAsync<FetchVideoResponse>(requestUpload);
+                    var uploadResponse = client.ExecuteAsync<ResponseFetchVideo>(requestUpload);
 
                     if (uploadResponse.IsCompleted)
                     {
                         if (uploadResponse.Result.StatusCode == HttpStatusCode.OK)
                         {
                             response.ResponseCode = 0;
-                            response.ResponseMessage = $"{fileName} Upload to BunnyCDN successful";
+                            response.ResponseMessage = $"{fileName} Upload to CDN successful";
                         }
                         else
                         {
                             response.ResponseCode = -1;
-                            response.ResponseMessage = $"{fileName} Upload to BunnyCDN unsuccessful. Error - Status Code: {uploadResponse.Result.StatusCode}, Message: {uploadResponse.Result.ErrorMessage}.";
+                            response.ResponseMessage = $"{fileName} Upload to CDN unsuccessful. Error - Status Code: {uploadResponse.Result.StatusCode}, Message: {uploadResponse.Result.ErrorMessage}.";
                         }
                     }
                     else
                     {
                         response.ResponseCode = -1;
-                        response.ResponseMessage = $"{fileName} Upload to BunnyCDN unsuccessful. Error - Status Code: {uploadResponse.Result.StatusCode}, Message: {uploadResponse.Result.ErrorMessage}.";
+                        response.ResponseMessage = $"{fileName} Upload to CDN unsuccessful. Error - Status Code: {uploadResponse.Result.StatusCode}, Message: {uploadResponse.Result.ErrorMessage}.";
                     }
                 }
             }
             else
             {
                 response.ResponseCode = -1;
-                response.ResponseMessage = $"{fileName} Upload to BunnyCDN unsuccessful. Error - Message: {response.ResponseMessage}.";
+                response.ResponseMessage = $"{fileName} Upload to CDN unsuccessful. Error - Message: {response.ResponseMessage}.";
             }
 
             return response;

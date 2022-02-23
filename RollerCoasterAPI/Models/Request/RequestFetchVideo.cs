@@ -1,6 +1,6 @@
 ﻿namespace RollerCoasterAPI.Models.Request
 {
-    public class FetchVideoRequest
+    public class RequestFetchVideo
     {
         public string URL { get; set; }
     }

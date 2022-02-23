@@ -2,7 +2,7 @@
 
 namespace RollerCoasterAPI.Models.Response
 {
-    public class FetchVideoResponse
+    public class ResponseFetchVideo
     {
         [JsonPropertyName("success")]
         public bool Success { get; set; }

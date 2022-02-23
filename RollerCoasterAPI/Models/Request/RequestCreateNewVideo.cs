@@ -2,7 +2,7 @@
 
 namespace RollerCoasterAPI.Models.Request
 {
-    public class CreateNewVideoRequest
+    public class RequestCreateNewVideo
     {
         [JsonPropertyName("title")]
         public string Title { get; set; }
