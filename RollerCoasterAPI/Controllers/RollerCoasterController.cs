@@ -187,22 +187,22 @@ namespace RollerCoasterAPI.Controllers
         }
 
         #region POV Videos
-        /// <summary>
-        /// Downloads an .mp4 video file for Roller Coasters POVs
-        /// </summary>
-        /// <param name="filename"></param>
-        /// <returns></returns>
-        [HttpGet("DownloadFile")]
-        [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        public async Task<ActionResult> DownloadPOVFile([Required] string filename)
-        {
-            string filePath = Path.Combine(RollerCoaster.POV_dir, filename);
-            var bytes = await System.IO.File.ReadAllBytesAsync(filePath);
-            var result = File(bytes, "video/mp4", Path.GetFileName(filePath));
+        ///// <summary>
+        ///// Downloads an .mp4 video file for Roller Coasters POVs
+        ///// </summary>
+        ///// <param name="filename"></param>
+        ///// <returns></returns>
+        //[HttpGet("DownloadFile")]
+        //[ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
+        //[ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        //public async Task<ActionResult> DownloadPOVFile([Required] string filename)
+        //{
+        //    string filePath = Path.Combine(RollerCoaster.POV_dir, filename);
+        //    var bytes = await System.IO.File.ReadAllBytesAsync(filePath);
+        //    var result = File(bytes, "video/mp4", Path.GetFileName(filePath));
 
-            return result;
-        }
+        //    return result;
+        //}
 
         [HttpPost("UploadPOV")]
         public ActionResult<ResponsePOV> UploadPOV([Required] string fileName, [Required] string filePath, int durationFrames, decimal frameRate, int resolutionX, int resolutionY)
