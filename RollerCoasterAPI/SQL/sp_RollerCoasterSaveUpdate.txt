@@ -1,0 +1,231 @@
+﻿USE [RollerCoasterDatabase]
+GO
+/****** Object:  StoredProcedure [dbo].[sp_RollerCoasterSaveUpdate]    Script Date: 28/03/2022 20:31:46 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- =============================================
+-- Author:		<Joe Turberfield>
+-- Create date: <17/02/2022>
+-- Description:	<Create, Update and Delete Roller Coasters>
+-- =============================================
+
+ALTER PROCEDURE [dbo].[sp_RollerCoasterSaveUpdate] 
+--sp_RollerCoasterSaveUpdate NULL,1,'Test RollerCoaster 2',3,1,'2002',50,5000,51,1,5000000,3,0
+
+@RollerCoasterID INT,
+@RollerCoasterTypeID INT,
+@RollerCoasterName NVARCHAR(100),
+@ThemeParkID INT,
+@ManufacturerID INT,
+@YearOpened DATETIME,
+@Height DECIMAL,
+@TrackLength DECIMAL,
+@MaxSpeed DECIMAL,
+@OperatingStatusID INT,
+@Cost DECIMAL,
+@TrainTypeID INT,
+@IsDeleted BIT
+	
+AS
+BEGIN
+-- SET NOCOUNT ON added to prevent extra result sets from
+-- interfering with SELECT statements.
+SET NOCOUNT ON;
+
+-- Check Roller Coaster Exists, 
+-- IF @RollerCoasterID = NULL then it is a new record
+-- IF Exists and @IsDeleted = 0 then we can UPDATE
+-- IF Exists and @IsDeleted = 1 then we can DELETE
+
+DECLARE @RollerCoasterExists INT = 
+CASE 
+	WHEN @RollerCoasterID IS NOT NULL THEN 
+	CASE WHEN EXISTS (SELECT 1 FROM RollerCoasters rc WHERE rc.RollerCoasterID = 3) THEN 1 
+	ELSE 0 END
+ELSE 0 END
+
+DECLARE @IsNew BIT = CASE WHEN @RollerCoasterExists = 0 AND @IsDeleted = 0 THEN 1 ELSE 0 END
+DECLARE @IsUpdate BIT = CASE WHEN @RollerCoasterExists = 1 AND @IsDeleted = 0 THEN 1 ELSE 0 END
+DECLARE @IsDelete BIT = CASE WHEN @RollerCoasterExists = 1 AND @IsDeleted = 1 THEN 1 ELSE 0 END
+
+IF @IsNew = 0 AND @IsUpdate = 0 AND @IsDelete = 0
+BEGIN
+	SELECT ResponseCode = -1, ResponseMessage = '';	
+	RETURN
+END
+IF @IsNew = 1 OR @IsUpdate = 1
+BEGIN
+	IF @RollerCoasterTypeID IS NULL OR @RollerCoasterTypeID < 1
+	BEGIN
+		SELECT ResponseCode = -1, ResponseMessage = 'A Roller Coaster Type must be selected';	
+		RETURN
+	END
+	IF @ThemeParkID IS NULL OR @ThemeParkID < 1
+	BEGIN
+		SELECT ResponseCode = -1, ResponseMessage = 'A Theme Park must be selected';	
+		RETURN
+	END
+	IF @ManufacturerID IS NULL OR @ManufacturerID < 1
+	BEGIN
+		SELECT ResponseCode = -1, ResponseMessage = 'A Theme Park must be selected';	
+		RETURN
+	END
+END
+IF @IsNew = 1
+BEGIN
+	BEGIN TRY
+		INSERT INTO RollerCoasters (
+			RollerCoasterTypeID,
+			RollerCoasterName,
+			ThemeParkID,
+			ManufacturerID,
+			YearOpened,
+			Height,
+			TrackLength,
+			MaxSpeed,
+			OperatingStatusID,
+			Cost,
+			TrainTypeID,
+			IsDeleted
+		)
+		VALUES(
+			@RollerCoasterTypeID,
+			@RollerCoasterName,
+			@ThemeParkID,
+			@ManufacturerID,
+			@YearOpened,
+			@Height,
+			@TrackLength,
+			@MaxSpeed,
+			@OperatingStatusID,
+			@Cost,
+			@TrainTypeID,
+			0
+		)			
+	END TRY
+	BEGIN CATCH
+		INSERT INTO Errors (
+			ErrorName,
+			ErrorMessage,
+			DateCreated
+		)
+		VALUES (
+			'Error saving new Roller Coaster',
+			ERROR_MESSAGE(),
+			GETDATE()
+		)
+		SELECT ResponseCode = -999, ResponseMessage = 'Error saving new Roller Coaster. Error:' + ERROR_MESSAGE();	
+		RETURN
+	END CATCH
+	SELECT ResponseCode = 0, ResponseMessage = 'New Roller Coaster Saved Successfully'
+	RETURN
+END
+IF @IsUpdate = 1
+BEGIN
+	IF @RollerCoasterID IS NULL OR @RollerCoasterTypeID < 1
+	BEGIN
+		SELECT ResponseCode = -1, ResponseMessage = 'A Roller Coaster must be selected to Update';	
+		RETURN
+	END
+	ELSE
+	BEGIN
+		IF EXISTS (SELECT TOP 1 * FROM RollerCoasters WHERE RollerCoasterID = @RollerCoasterID)
+		BEGIN
+			BEGIN TRY
+				UPDATE rc
+					SET
+					rc.RollerCoasterTypeID = @RollerCoasterTypeID,
+					rc.RollerCoasterName = @RollerCoasterName,
+					rc.ThemeParkID = @ThemeParkID,
+					rc.ManufacturerID = @ManufacturerID,
+					rc.YearOpened = @YearOpened,
+					rc.Height = @Height,
+					rc.TrackLength = @TrackLength,
+					rc.MaxSpeed = @MaxSpeed,
+					rc.OperatingStatusID = @OperatingStatusID,
+					rc.Cost = @Cost,
+					rc.TrainTypeID = @TrainTypeID
+					FROM RollerCoasters rc
+					WHERE @RollerCoasterID = rc.RollerCoasterID
+				SELECT ResponseCode = 0, ResponseMessage = @RollerCoasterName + ' Updated Successfully'
+				RETURN
+			END TRY
+			BEGIN CATCH
+				INSERT INTO Errors (
+					ErrorName,
+					ErrorMessage,
+					DateCreated
+				)
+				VALUES (
+					'Error updating Roller Coaster',
+					ERROR_MESSAGE(),
+					GETDATE()
+				)
+				SELECT ResponseCode = -999, ResponseMessage = 'Error updating Roller Coaster. Error:' + ERROR_MESSAGE();	
+				RETURN
+			END CATCH			
+		END
+		ELSE
+		BEGIN
+			SELECT ResponseCode = -1, ResponseMessage = 'Roller Coaster ' + @RollerCoasterName + ' not found';	
+			RETURN
+		END
+		END
+	RETURN
+END
+IF @IsDelete = 1 
+BEGIN
+	IF @RollerCoasterID IS NULL OR @RollerCoasterTypeID < 1
+	BEGIN
+		SELECT ResponseCode = -1, ResponseMessage = 'A Roller Coaster must be selected to Delete';	
+		RETURN
+	END
+	ELSE
+	BEGIN
+		IF EXISTS (SELECT TOP 1 * FROM RollerCoasters WHERE RollerCoasterID = @RollerCoasterID)
+		BEGIN
+			BEGIN TRY
+				UPDATE Rc
+					SET
+					Rc.IsDeleted = 1,
+					Rc.DeletedDate = GETDATE()
+					FROM RollerCoasters Rc
+					WHERE rc.RollerCoasterID = @RollerCoasterID				
+				IF EXISTS(SELECT 1 FROM RollerCoasters rc WHERE rc.RollerCoasterID = @RollerCoasterID AND rc.IsDeleted = 1)
+				BEGIN
+					SELECT ResponseCode = 0, ResponseMessage = 'Roller Coaster Deleted Successfully'
+				END
+				ELSE
+				BEGIN
+					SELECT ResponseCode = -1, ResponseMessage = 'Error Deleting Roller Coaster'
+				END
+				RETURN
+			END TRY
+			BEGIN CATCH 
+				INSERT INTO Errors (
+					ErrorName,
+					ErrorMessage,
+					DateCreated
+				)
+				VALUES (
+					'Error Deleting Roller Coaster',
+					ERROR_MESSAGE(),
+					GETDATE()
+				)
+				SELECT ResponseCode = -999, ResponseMessage = 'Error Deleting Roller Coaster. Error:' + ERROR_MESSAGE();	
+				RETURN
+			END CATCH			
+		END
+		ELSE
+		BEGIN
+			SELECT 
+				ResponseCode = -1, ResponseMessage = 'Roller Coaster ' + @RollerCoasterName + ' not found';	
+			RETURN
+		END
+		END
+	RETURN
+	END
+END

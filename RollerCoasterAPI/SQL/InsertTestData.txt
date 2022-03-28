@@ -1,0 +1,109 @@
+﻿
+-- =============================================
+-- Author:		Joe Turberfield
+-- Create date: 17/02/2022
+-- Description:	Insert into Tables for Roller Coaster Database
+-- =============================================
+
+INSERT INTO Users(
+UserName,
+DateCreated
+)
+VALUES(
+'joe.turberfield',
+GETDATE()
+)
+
+INSERT INTO RollerCoasterTypes (
+RollerCoasterType, 
+RollerCoasterDescription
+)
+VALUES(
+'Hyper Coaster', 
+'A hyper roller coaster, or hyper coaster, is a full-circuit roller coaster that is built for height, speed and airtime. These coasters are between 200 feet and 299 feet tall, and typically feature an out and back layout'
+)
+
+INSERT INTO Manufacturers(
+ManufacturerName
+)
+VALUES(
+'Arrow Dynamics'
+)
+
+INSERT INTO Owners(
+OwnerName
+)
+VALUES(
+'Thompson family'
+)
+
+INSERT INTO ThemeParks(
+ThemeParkName,
+OwnerID
+)
+VALUES(
+'Blackpool Pleasure Beach',
+1
+)
+
+INSERT INTO OperatingStatus(
+OperatingStatus
+)
+VALUES(
+'Operating'
+)
+
+INSERT INTO TrainTypes(
+TrainType
+)
+VALUES(
+'Standard'
+)
+
+INSERT INTO AttractionTypes (AttractionType,AttractionDescription)
+VALUES
+('Gentle Ride', 'A relaxing ride experience with minimal thrills'),
+('Thrill Ride', 'A thrilling ride for people who seek an adrenaline rush'),
+('Transport Ride', 'A ride that will transport guests offering observations and a relaxing journey. Typically as a shuttle or circuit.'),
+('Water Ride', 'A ride that is based in water and uses water effects to splash the guests')
+
+INSERT INTO Manufacturers(ManufacturerName)
+VALUES
+('Bolligner & Mabillard'),
+('Intamin'),
+('Mack Rides')
+
+INSERT INTO OperatingStatus(OperatingStatus)
+VALUES
+('Closed'),
+('Demolished'),
+('SBNO')
+
+INSERT INTO RollerCoasters(
+RollerCoasterTypeID,
+RollerCoasterName,
+ThemeParkID,
+ManufacturerID,
+YearOpened,
+Height,
+OperatingStatusID,
+Cost,
+TrainTypeID
+)
+VALUES(
+1,
+'The Pepsi Max Big One',
+3,
+1,
+'1994',
+213,
+1,
+12000000,
+1
+)
+
+
+UPDATE rc 
+set
+rc.IsDeleted = 0
+FROM RollerCoasters rc

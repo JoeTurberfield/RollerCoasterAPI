@@ -1,0 +1,256 @@
+﻿
+-- =============================================
+-- Author:		Joe Turberfield
+-- Create date: 17/02/2022
+-- Description:	Create Tables for Roller Coaster Database
+-- =============================================
+
+--sp_help 'Attractions'
+
+-- find foreign keys
+--EXEC sp_fkeys 'Attractions' 
+
+--SELECT 
+--   OBJECT_NAME(f.parent_object_id) TableName,
+--   COL_NAME(fc.parent_object_id,fc.parent_column_id) ColName
+--FROM 
+--   sys.foreign_keys AS f
+--INNER JOIN 
+--   sys.foreign_key_columns AS fc 
+--      ON f.OBJECT_ID = fc.constraint_object_id
+--INNER JOIN 
+--   sys.tables t 
+--      ON t.OBJECT_ID = fc.referenced_object_id
+--WHERE 
+--   OBJECT_NAME (f.referenced_object_id) = 'AttractionTypes'
+
+
+-------------------
+-- Owners
+-------------------
+--OwnerID
+--OwnerName
+--City
+--Provienence
+--Country
+CREATE TABLE Owners (
+OwnerID INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
+OwnerName NVARCHAR(50) NOT NULL,
+City NVARCHAR(50) NULL,
+Provinence NVARCHAR(50) NULL,
+Country NVARCHAR(50) NULL
+)
+
+-------------------
+-- AttractionTypes
+-------------------
+--AttractionID
+--AttractionType
+--AttractionDescription
+CREATE TABLE AttractionTypes (
+AttractionID INT IDENTITY(1,1) PRIMARY KEY NOT NULL, 
+AttractionType NVARCHAR(50) NOT NULL,
+AttractionDescription NVARCHAR(255) NULL
+)
+ALTER TABLE Attractions DROP CONSTRAINT fk_Attraction_ID
+
+-------------------
+-- ThemeParks
+-------------------
+--ThemeParkID
+--ThemeParkName
+--City
+--Provienence
+--Country
+--OwnerID
+CREATE TABLE ThemeParks(
+ThemeParkID INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
+ThemeParkName NVARCHAR(100) NOT NULL,
+City NVARCHAR(50) NULL,
+Provinence NVARCHAR(50) NULL,
+Country NVARCHAR(50) NULL,
+OwnerID INT NOT NULL
+)
+ALTER TABLE ThemeParks ADD CONSTRAINT fk_Owner_ID FOREIGN KEY (OwnerID) REFERENCES Owners(OwnerID);
+
+-------------------
+-- OperatingStatus
+-------------------
+--OperatingStatusID
+--OperatingStatus
+CREATE TABLE OperatingStatus(
+OperatingStatusID INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
+OperatingStatus NVARCHAR(50) NOT NULL
+)
+
+-------------------
+-- RollerCoasterTypes
+-------------------
+--RollerCoasterTypeID
+--RollerCoasterType
+--RollerCoasterDescription
+CREATE TABLE RollerCoasterTypes(
+RollerCoasterTypeID INT IDENTITY (1,1) PRIMARY KEY NOT NULL,
+RollerCoasterType NVARCHAR(100) NOT NULL,
+RollerCoasterDescription NVARCHAR(255) NULL
+)
+
+-------------------
+-- TrainTypes
+-------------------
+--TrainTypeID
+--TrainType
+--TrainDescription
+CREATE TABLE TrainTypes(
+TrainTypeID INT IDENTITY (1,1) PRIMARY KEY NOT NULL,
+TrainType NVARCHAR(50) NOT NULL,
+TrainDescription NVARCHAR(255) NULL
+)
+
+-------------------
+-- Attractions
+-------------------
+--ID
+--AttractionTypeID
+--Name
+--ThemeParkID
+--ManufacturerID
+--YearOpened
+--OperatingStatusID
+--Cost
+CREATE TABLE Attractions (
+AttractionID INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
+AttractionTypeID INT NOT NULL,
+AttractionName NVARCHAR(100) NOT NULL,
+ThemeParkID INT NOT NULL,
+ManufacturerID INT NOT NULL,
+YearOpened DATETIME NOT NULL,
+OperatingStatusID INT NOT NULL,
+Cost DECIMAL(19,4) NOT NULL
+)
+
+ALTER TABLE Attractions ADD CONSTRAINT fk_Attractions_Attraction_ID FOREIGN KEY (AttractionTypeID) REFERENCES AttractionTypes(AttractionID);
+ALTER TABLE Attractions	ADD CONSTRAINT fk_Attractions_ThemePark_ID FOREIGN KEY (ThemeParkID) REFERENCES ThemeParks(ThemeParkID);
+ALTER TABLE Attractions	ADD CONSTRAINT fk_Attractions_Manufacturer_ID FOREIGN KEY (ManufacturerID) REFERENCES Manufacturers(ManufacturerID);
+ALTER TABLE Attractions	ADD CONSTRAINT fk_Attractions_OperatingStatus_ID FOREIGN KEY (OperatingStatusID) REFERENCES OperatingStatus(OperatingStatusID);
+
+ALTER TABLE Attractions DROP CONSTRAINT fk_Attractions_Attraction_ID
+ALTER TABLE Attractions DROP CONSTRAINT fk_Attractions_ThemePark_ID
+ALTER TABLE Attractions DROP CONSTRAINT fk_Attractions_Manufacturer_ID
+ALTER TABLE Attractions DROP CONSTRAINT fk_Attractions_OperatingStatus_ID
+
+ALTER TABLE Attractions ADD IsDeleted BIT
+ALTER TABLE Attractions ADD DeletedDate DATETIME
+-------------------
+-- RollerCoasters
+-------------------
+--ID
+--RollerCoasterID
+--RollerCoasterTypeID
+--RollerCoasterName
+--ThemeParkID
+--ManufacturerID
+--YearOpened
+--Height
+--TrackLength
+--MaxSpeed
+--OperatingStatusID
+--Cost
+--TrainTypeID
+CREATE TABLE RollerCoasters (
+RollerCoasterID INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
+RollerCoasterTypeID INT NOT NULL,
+RollerCoasterName NVARCHAR(100) NOT NULL,
+ThemeParkID INT NOT NULL,
+ManufacturerID INT NOT NULL,
+YearOpened DATETIME NOT NULL,
+Height DECIMAL NULL,
+TrackLength DECIMAL NULL,
+MaxSpeed DECIMAL NULL,
+OperatingStatusID INT NOT NULL,
+Cost DECIMAL(19,4) NOT NULL,
+TrainTypeID INT NOT NULL
+)
+
+ALTER TABLE RollerCoasters ADD CONSTRAINT fk_RollerCoasters_RollerCoaster_ID FOREIGN KEY (RollerCoasterTypeID) REFERENCES RollerCoasterTypes(RollerCoasterTypeID);
+ALTER TABLE RollerCoasters	ADD CONSTRAINT fk_RollerCoasters_ThemePark_ID FOREIGN KEY (ThemeParkID) REFERENCES ThemeParks(ThemeParkID);
+ALTER TABLE RollerCoasters	ADD CONSTRAINT fk_RollerCoasters_Manufacturer_ID FOREIGN KEY (ManufacturerID) REFERENCES Manufacturers(ManufacturerID);
+ALTER TABLE RollerCoasters	ADD CONSTRAINT fk_RollerCoasters_OperatingStatus_ID FOREIGN KEY (OperatingStatusID) REFERENCES OperatingStatus(OperatingStatusID);
+
+ALTER TABLE RollerCoasters DROP CONSTRAINT fk_RollerCoasters_RollerCoaster_ID
+ALTER TABLE RollerCoasters DROP CONSTRAINT fk_RollerCoasters_ThemePark_ID
+ALTER TABLE RollerCoasters DROP CONSTRAINT fk_RollerCoasters_Manufacturer_ID
+ALTER TABLE RollerCoasters DROP CONSTRAINT fk_RollerCoasters_OperatingStatus_ID
+
+ALTER TABLE RollerCoasters ADD IsDeleted BIT
+ALTER TABLE RollerCoasters ADD DeletedDate DATETIME
+
+-------------------
+-- Manufacturers
+-------------------
+--ID
+--Name
+--City
+--Provienence
+--Country
+CREATE TABLE Manufacturers(
+ManufacturerID INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
+ManufacturerName NVARCHAR(100) NOT NULL,
+City NVARCHAR(50) NULL,
+Provinence NVARCHAR(50) NULL,
+Country NVARCHAR(50) NULL
+)
+
+-------------------
+-- Note Types
+-------------------
+--NoteTypeID
+--NoteTypeName
+CREATE TABLE NoteTypes(
+NoteTypeID INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
+NoteTypeName NVARCHAR(100) NOT NULL
+)
+
+-------------------
+-- Notes Types
+-------------------
+--NoteID
+--NoteTypeID
+--DateCreated
+--CreatedBy
+CREATE TABLE Notes(
+NoteID INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
+NoteTypeID INT NOT NULL,
+DateCreated DATETIME NOT NULL,
+CreatedBy NVARCHAR(50) NULL
+)
+
+ALTER TABLE Notes ADD CONSTRAINT fk_Notes_NoteType_ID FOREIGN KEY (NoteTypeID) REFERENCES NoteTypes(NoteTypeID);
+
+
+-------------------
+-- Users
+-------------------
+--UserID
+--UserName
+--DateCreated
+CREATE TABLE Users(
+UserID INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
+UserName NVARCHAR(100) NOT NULL,
+DateCreated DATETIME NOT NULL
+)
+
+-------------------
+-- Errors
+-------------------
+--ErrorID
+--ErrorName
+--ErrorMessage
+--DateCreated
+CREATE TABLE Errors(
+ErrorID INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
+ErrorName NVARCHAR(100) NOT NULL,
+ErrorMessage NVARCHAR(MAX) NOT NULL,
+DateCreated DATETIME NOT NULL
+)
+

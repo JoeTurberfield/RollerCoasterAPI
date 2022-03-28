@@ -1,0 +1,47 @@
+﻿USE [RollerCoasterDatabase]
+GO
+/****** Object:  StoredProcedure [dbo].[sp_RollerCoasterDatabaseGetDDLs]    Script Date: 28/03/2022 20:31:08 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		<Joe Turberfield>
+-- Create date: <19/02/2022>
+-- Description:	<Select data to populate drop down lists>
+-- =============================================
+ALTER PROCEDURE [dbo].[sp_RollerCoasterDatabaseGetDDLs]
+
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+	SELECT ResponseCode = 0, ResponseMessage = ''
+
+	SELECT at.AttractionID as Value, at.AttractionType as Name 
+	FROM AttractionTypes at
+
+	SELECT mf.ManufacturerID as Value, mf.ManufacturerName as Name 
+	FROM Manufacturers mf
+
+	SELECT nt.NoteTypeID as Value, nt.NoteTypeName as Name 
+	FROM NoteTypes nt
+
+	SELECT op.OperatingStatusID as Value, op.OperatingStatus as Name 
+	FROM OperatingStatus op
+
+	SELECT own.OwnerID as Value, own.OwnerName as Name 
+	FROM Owners own
+
+	SELECT rct.RollerCoasterTypeID as Value, rct.RollerCoasterType as Name 
+	FROM RollerCoasterTypes rct
+
+	SELECT tp.ThemeParkID as Value, tp.ThemeParkName as Name 
+	FROM ThemeParks tp
+
+	SELECT tt.TrainTypeID as Value, tt.TrainType as Name 
+	FROM TrainTypes tt
+
+END
