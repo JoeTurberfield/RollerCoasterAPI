@@ -52,7 +52,7 @@ AttractionID INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
 AttractionType NVARCHAR(50) NOT NULL,
 AttractionDescription NVARCHAR(255) NULL
 )
-ALTER TABLE Attractions DROP CONSTRAINT fk_Attraction_ID
+--ALTER TABLE Attractions DROP CONSTRAINT fk_Attraction_ID
 
 -------------------
 -- ThemeParks
@@ -72,7 +72,6 @@ Country NVARCHAR(50) NULL,
 OwnerID INT NOT NULL
 )
 ALTER TABLE ThemeParks ADD CONSTRAINT fk_Owner_ID FOREIGN KEY (OwnerID) REFERENCES Owners(OwnerID);
-
 -------------------
 -- OperatingStatus
 -------------------
@@ -105,6 +104,75 @@ CREATE TABLE TrainTypes(
 TrainTypeID INT IDENTITY (1,1) PRIMARY KEY NOT NULL,
 TrainType NVARCHAR(50) NOT NULL,
 TrainDescription NVARCHAR(255) NULL
+)
+
+-------------------
+-- Manufacturers
+-------------------
+--ID
+--Name
+--City
+--Provienence
+--Country
+CREATE TABLE Manufacturers(
+ManufacturerID INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
+ManufacturerName NVARCHAR(100) NOT NULL,
+City NVARCHAR(50) NULL,
+Provinence NVARCHAR(50) NULL,
+Country NVARCHAR(50) NULL
+)
+
+-------------------
+-- Note Types
+-------------------
+--NoteTypeID
+--NoteTypeName
+CREATE TABLE NoteTypes(
+NoteTypeID INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
+NoteTypeName NVARCHAR(100) NOT NULL
+)
+
+-------------------
+-- Notes Types
+-------------------
+--NoteID
+--NoteTypeID
+--DateCreated
+--CreatedBy
+CREATE TABLE Notes(
+NoteID INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
+NoteTypeID INT NOT NULL,
+DateCreated DATETIME NOT NULL,
+CreatedBy NVARCHAR(50) NULL
+)
+
+ALTER TABLE Notes ADD CONSTRAINT fk_Notes_NoteType_ID FOREIGN KEY (NoteTypeID) REFERENCES NoteTypes(NoteTypeID);
+
+
+-------------------
+-- Users
+-------------------
+--UserID
+--UserName
+--DateCreated
+CREATE TABLE Users(
+UserID INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
+UserName NVARCHAR(100) NOT NULL,
+DateCreated DATETIME NOT NULL
+)
+
+-------------------
+-- Errors
+-------------------
+--ErrorID
+--ErrorName
+--ErrorMessage
+--DateCreated
+CREATE TABLE Errors(
+ErrorID INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
+ErrorName NVARCHAR(100) NOT NULL,
+ErrorMessage NVARCHAR(MAX) NOT NULL,
+DateCreated DATETIME NOT NULL
 )
 
 -------------------
@@ -185,72 +253,12 @@ ALTER TABLE RollerCoasters DROP CONSTRAINT fk_RollerCoasters_OperatingStatus_ID
 ALTER TABLE RollerCoasters ADD IsDeleted BIT
 ALTER TABLE RollerCoasters ADD DeletedDate DATETIME
 
--------------------
--- Manufacturers
--------------------
---ID
---Name
---City
---Provienence
---Country
-CREATE TABLE Manufacturers(
-ManufacturerID INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
-ManufacturerName NVARCHAR(100) NOT NULL,
-City NVARCHAR(50) NULL,
-Provinence NVARCHAR(50) NULL,
-Country NVARCHAR(50) NULL
-)
-
--------------------
--- Note Types
--------------------
---NoteTypeID
---NoteTypeName
-CREATE TABLE NoteTypes(
-NoteTypeID INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
-NoteTypeName NVARCHAR(100) NOT NULL
-)
-
--------------------
--- Notes Types
--------------------
---NoteID
---NoteTypeID
---DateCreated
---CreatedBy
-CREATE TABLE Notes(
-NoteID INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
-NoteTypeID INT NOT NULL,
-DateCreated DATETIME NOT NULL,
-CreatedBy NVARCHAR(50) NULL
-)
-
-ALTER TABLE Notes ADD CONSTRAINT fk_Notes_NoteType_ID FOREIGN KEY (NoteTypeID) REFERENCES NoteTypes(NoteTypeID);
 
 
--------------------
--- Users
--------------------
---UserID
---UserName
---DateCreated
-CREATE TABLE Users(
-UserID INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
-UserName NVARCHAR(100) NOT NULL,
-DateCreated DATETIME NOT NULL
-)
-
--------------------
--- Errors
--------------------
---ErrorID
---ErrorName
---ErrorMessage
---DateCreated
-CREATE TABLE Errors(
-ErrorID INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
-ErrorName NVARCHAR(100) NOT NULL,
-ErrorMessage NVARCHAR(MAX) NOT NULL,
-DateCreated DATETIME NOT NULL
-)
-
+--drop table Attractions
+--drop table AttractionTypes
+--drop table OperatingStatus
+--drop table Owners
+--drop table RollerCoasterTypes
+--drop table ThemeParks
+--drop table TrainTypes

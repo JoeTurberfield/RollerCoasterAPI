@@ -12,7 +12,7 @@ GO
 -- Description:	<Create, Update and Delete Roller Coasters>
 -- =============================================
 
-ALTER PROCEDURE [dbo].[sp_RollerCoasterSaveUpdate] 
+CREATE PROCEDURE [dbo].[sp_RollerCoasterSaveUpdate] 
 --sp_RollerCoasterSaveUpdate NULL,1,'Test RollerCoaster 2',3,1,'2002',50,5000,51,1,5000000,3,0
 
 @RollerCoasterID INT,
